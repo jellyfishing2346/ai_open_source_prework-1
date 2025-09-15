@@ -34,6 +34,21 @@ document.addEventListener("DOMContentLoaded", () => {
         };
         state.ws.send(JSON.stringify(joinMessage));
     };
+    
+    // Function to update the player list UI
+    function updatePlayerList() {
+        const playersUl = document.getElementById('players-ul');
+        if (!playersUl) return;
+        playersUl.innerHTML = ''; // Clear the existing list
+
+        const playerNames = Object.values(state.players).map(p => p.username).sort();
+
+        playerNames.forEach(username => {
+            const listItem = document.createElement('li');
+            listItem.textContent = username;
+            playersUl.appendChild(listItem);
+        });
+    }
 
     state.ws.onmessage = (event) => {
         const message = JSON.parse(event.data);
@@ -54,7 +69,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     });
                 }
             }
-
+            updatePlayerList();
             requestAnimationFrame(gameLoop);
         } else if (message.action === 'players_moved') {
             for (const playerId in message.players) {
@@ -72,8 +87,10 @@ document.addEventListener("DOMContentLoaded", () => {
                     return img;
                 });
             }
+            updatePlayerList();
         } else if (message.action === 'player_left') {
             delete state.players[message.playerId];
+            updatePlayerList();
         } else if (message.success === false) {
             console.error('Server error:', message.error);
         }
